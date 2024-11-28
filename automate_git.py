@@ -14,7 +14,6 @@ def run_command(command, error_message):
 
 def check_and_set_git_config():
     """Ensure Git is configured with user.name and user.email."""
-    breakpoint()
     try:
         run_command(["git", "config", "--global", "user.name", USERNAME], "Failed to set user.name.")
         run_command(["git", "config", "--global", "user.email", EMAIL], "Failed to set user.email.")
