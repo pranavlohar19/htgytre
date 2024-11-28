@@ -45,7 +45,7 @@ def git_commit(message):
     if not message:
         print("Commit message is required!")
         sys.exit(1)
-    run_command(["git", "commit", "-m", message], "Error committing changes.")
+    run_command(["git", "commit", "-m", f"{message}"], f"Error committing changes. Message: {message}")
 
 def git_push(branch):
     """Push changes to the remote repository, using a developer token if available."""
