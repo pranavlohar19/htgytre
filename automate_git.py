@@ -1,11 +1,12 @@
+
 import subprocess
 import sys
 import os
 
-# Default values
-EMAIL = os.getenv("GIT_USER_EMAIL", "pranav.lohar@skedgroup.in")
-USERNAME = os.getenv("GIT_USER_NAME", "pranavlohar19")
-DEV_TOKEN = os.getenv("GIT_DEV_TOKEN", None)
+# Use environment variables for sensitive data
+DEV_TOKEN = os.getenv("GITHUB_TOKEN")
+EMAIL = "pranav.lohar@skedgroup.in"
+USERNAME = "pranavlohar19"
 
 def run_command(command, error_message):
     """Run a shell command and handle errors."""
@@ -15,6 +16,7 @@ def run_command(command, error_message):
     except subprocess.CalledProcessError as e:
         print(f"{error_message}\n{e.stderr}")
         sys.exit(1)
+
 
 def check_and_set_git_config():
     """Ensure Git is configured with user.name and user.email."""
@@ -45,19 +47,24 @@ def git_commit(message):
     if not message:
         print("Commit message is required!")
         sys.exit(1)
-    run_command(["git", "commit", "-m", message], "Error committing changes.")
+    run_command(["git", "commit", "-m", f"{message}"], f"Error committing changes. Message: {message}")
 
 def git_push(branch):
-    """Push changes to the remote repository, using a developer token if available."""
-    remote_url = run_command(["git", "remote", "get-url", "origin"], "Error fetching remote URL.")
+    """Push changes to the remote repository using the token."""
+    if not DEV_TOKEN:
+        print("Developer token not set. Set the GITHUB_TOKEN environment variable.")
+        sys.exit(1)
     
-    if DEV_TOKEN and "https://" in remote_url:
-        # Inject token into the remote URL
+    remote_url = run_command(["git", "remote", "get-url", "origin"], "Error fetching remote URL.")
+    if "https://" in remote_url:
         auth_url = remote_url.replace("https://", f"https://{DEV_TOKEN}@")
-        print("Using developer token for authentication.")
+        # first take pull to update the local repo
+        run_command(["git", "pull", auth_url, branch], f"Error pulling changes from branch '{branch}' using token.")
         run_command(["git", "push", auth_url, branch], f"Error pushing changes to branch '{branch}' using token.")
     else:
         run_command(["git", "push", "origin", branch], f"Error pushing changes to branch '{branch}'.")
+
+# Other functions remain unchanged
 
 def main():
     """Automate Git process with configuration."""
